@@ -3,6 +3,10 @@ import { RUSH_RADAR_ROOMS } from './radar.mjs';
 // Reuse the manager's installed default theme rather than redistribute its bundle.
 export const CUSTOM_IMAGE_FORMATS = ['svg', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'avif', 'bmp', 'ico'];
 
+export function resolveIdentityImage(theme, candidates) {
+  return candidates.find(src => typeof src === 'string' && src.trim() && !theme.failedImages?.has(src)) || '';
+}
+
 export function imageDescriptor(value, baseURL) {
   const config = typeof value === 'string' ? { src: value } : value;
   if (!config || typeof config.src !== 'string' || !config.src.trim()) throw new Error('Custom image entries need a non-empty src path');
@@ -42,8 +46,14 @@ export async function loadDefaultTheme() {
   });
   const descriptor = value => imageDescriptor(value, location.href);
   const imageURL = (value, fallback) => descriptor(value || fallback).src;
-  const portraits = { CT: imageURL(images.portraits?.CT, asset('default_CT')), T: imageURL(images.portraits?.T, asset('default_T')) };
+  const defaults = {
+    portraits: { CT: asset('default_CT'), T: asset('default_T') },
+    logos: { CT: asset('logo_CT_default'), T: asset('logo_T_default') }
+  };
+  const portraits = { CT: imageURL(images.portraits?.CT, defaults.portraits.CT), T: imageURL(images.portraits?.T, defaults.portraits.T) };
   return {
+    defaults,
+    failedImages: new Set(),
     portraits,
     observedPortraits: Object.fromEntries(['CT', 'T'].map(side => [side, imageURL(images.observedPortraits?.[side], portraits[side])])),
     logos: { CT: imageURL(images.logos?.CT, asset('logo_CT_default')), T: imageURL(images.logos?.T, asset('logo_T_default')) },

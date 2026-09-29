@@ -11,13 +11,13 @@ Compared against the installed July 13, 2026 default HUD bundle and its panel.js
 - Version 1.5.0 adds explicit round-win announcements, pause/timeout overlays, reported timeout counts, buy-phase team utility totals, tournament branding, CT/T colors, corner/model/advertisement/compact-matchbar controls, fuller carried equipment strips and accumulated rapid-hit damage numbers.
 - Version 1.6.0 adds event-driven motion to the matchbar, rosters, player entry/death/revival, observed player, timer, scores, statistics, equipment, round-kill cards, utility panels, round announcements, pauses and timeouts. Keyed elements stay mounted for exit transitions, and countdown-only updates remain quiet.
 - Version 1.7.0 adds the default-style radar behavior adapted to RUSH's randomized arenas. Live player coordinates select the calibrated room overview and drive team-colored, directional player markers, including observed and dead states.
+- Version 1.8.0 adds JT Hud Manager current-match team selection, side reversal, team names/logos and player username/avatar enrichment. SteamID matching handles real players; observer-slot roster assignment handles bots.
 - Local image overrides, reduced motion, stale live-data clearing and disconnect cleanup.
 
 ## Missing features that can be adapted
 
-1. **Manager profiles and match assignments:** custom player names/photos, team identities/logos and configured side reversal. RUSH uses raw GSI names/sides and local image overrides, not the default's profile/match enrichment pipeline. Preserve explicit team identity when changing sides.
-2. **Series overlays:** best-of/map picks, series-win pips, next-map information and veto panels. These need an explicitly configured RUSH series; they must not assume competitive map rules.
-3. **Additional layout variants:** the horizontal 3v3 layout is optimized for gameplay visibility; the default's vertical and camera layouts are not yet ported.
+1. **Series overlays:** best-of/map picks, series-win pips, next-map information and veto panels. These need an explicitly configured RUSH series; they must not assume competitive map rules.
+2. **Additional layout variants:** the horizontal 3v3 layout is optimized for gameplay visibility; the default's vertical and camera layouts are not yet ported.
 
 ## Data-dependent or unsuitable without adaptation
 

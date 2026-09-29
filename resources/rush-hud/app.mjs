@@ -1,4 +1,5 @@
 import { normalize } from './model.mjs';
+import { emptyManagerAssignments, loadManagerAssignments } from './assignments.mjs';
 import { updateMarkup, changes, presentationChanges } from './motion.mjs';
 import { loadDefaultTheme } from './theme.mjs';
 import { view } from './view.mjs';
@@ -10,11 +11,24 @@ let latest = null, received = 0, connected = false, hidden = false;
 let lastMarkup = '', previousGame = null;
 let gameoverSince = null;
 let settings = {};
+let managerAssignments = emptyManagerAssignments();
+let assignmentRefresh = null;
+let assignmentMap = '';
 const damageTotals = new Map();
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let theme;
 try { theme = await loadDefaultTheme(); }
 catch (error) { root.textContent = `${error.message}. Keep JT Hud Manager's default HUD installed, then refresh this source.`; throw error; }
+
+root.addEventListener('error', event => {
+  const image = event.target;
+  if (!image.matches?.('img[data-identity-image]')) return;
+  const src = image.getAttribute('src');
+  if (!src || theme.failedImages.has(src)) return;
+  theme.failedImages.add(src);
+  lastMarkup = '';
+  render();
+}, true);
 
 function animate(node, frames, options) {
   if (node && !reducedMotion.matches) node.animate(frames, options);
@@ -48,7 +62,7 @@ function playPresentationMotion(before, game) {
     if (event.entered && !motion.initial) animate(card, [{ opacity: 0, transform: 'translateY(55px) scale(.9)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], { duration: 520, easing: ease });
     if (event.revived) animate(card, [{ opacity: .35, filter: 'grayscale(1) brightness(2)' }, { opacity: 1, filter: 'grayscale(0) brightness(1)' }], { duration: 600, easing: ease });
     if (event.stats && !event.dead) animate(card?.querySelector('.card-info-section'), [{ filter: 'brightness(1)' }, { filter: 'brightness(1.8)', offset: .4 }, { filter: 'brightness(1)' }], { duration: 420, easing: 'ease-out' });
-    if (event.equipment && !event.dead) animate(card?.querySelector('.card-weapons-section'), [{ transform: 'translateY(5px)', opacity: .35 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 300, easing: ease });
+    if (event.equipment && !event.dead) animate(card?.querySelector('.inventory-items'), [{ transform: 'translateY(3px)', opacity: .55 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 260, easing: ease });
     if (event.roundKills && !event.dead) animate(card?.querySelector('.round_kills_card'), [{ opacity: 0, transform: 'rotate(8deg) scale(.4)' }, { opacity: 1, transform: 'rotate(8deg) scale(1.18)', offset: .7 }, { opacity: 1, transform: 'rotate(8deg) scale(1)' }], { duration: 420, easing: ease });
   }
   if (motion.observed) animate(root.querySelector('.observed'), [{ opacity: .2, transform: 'translate(-50%, 28px) scale(.96)' }, { opacity: 1, transform: 'translate(-50%, 0) scale(1)' }], { duration: 420, easing: ease });
@@ -57,7 +71,7 @@ function playPresentationMotion(before, game) {
 function render() {
   const completed = latest?.map?.mode === 'rush' && latest?.map?.phase === 'gameover';
   const fresh = connected && received > 0 && (performance.now() - received < 10000 || completed);
-  const game = normalize(fresh ? latest : {}, previousGame);
+  const game = normalize(fresh ? latest : {}, previousGame, managerAssignments);
   const show = fresh && game.isRush;
   let status = !connected ? 'Connecting to JT Hud Manager' : !fresh ? 'Waiting for live game data' : !game.isRush ? 'Waiting for a RUSH match' : !game.hasRoster ? 'Waiting for spectator data' : game.count !== 6 ? `Spectator roster · ${game.count} / 6 players` : '';
   if (connected && received && !fresh) status = 'Game feed paused · waiting for fresh data';
@@ -108,6 +122,17 @@ function accept(payload) {
   if (!payload || typeof payload !== 'object') return;
   latest = payload;
   received = performance.now();
+  const nextMap = payload.map?.name || '';
+  if (nextMap !== assignmentMap) refreshManagerAssignments(nextMap);
+}
+async function refreshManagerAssignments(activeMap = latest?.map?.name || '') {
+  if (preview || assignmentRefresh) return assignmentRefresh;
+  assignmentMap = activeMap;
+  assignmentRefresh = loadManagerAssignments({ activeMap }).then(value => {
+    managerAssignments = value;
+    render();
+  }).catch(() => {}).finally(() => { assignmentRefresh = null; });
+  return assignmentRefresh;
 }
 if (preview) {
   const { fixture, stressFixture } = await import('./preview.mjs');
@@ -120,6 +145,7 @@ if (preview) {
   socket.on('connect', () => { connected = true; received = 0; socket.emit('started'); });
   socket.on('readyToRegister', () => socket.emit('register', 'rush-hud', false, 'cs2', 'DEFAULT'));
   socket.on('update', accept);
+  socket.on('match', () => refreshManagerAssignments());
   socket.on('hud_config', data => { settings = data?.display_settings && typeof data.display_settings === 'object' ? data.display_settings : {}; lastMarkup = ''; render(); });
   socket.on('disconnect', () => { connected = false; latest = null; received = 0; render(); });
   socket.on('connect_error', () => { connected = false; render(); });
@@ -130,5 +156,9 @@ if (preview) {
   });
 } else root.textContent = 'Open this HUD through JT Hud Manager.';
 setInterval(render, 100);
+if (!preview) {
+  refreshManagerAssignments();
+  setInterval(() => refreshManagerAssignments(), 5000);
+}
 render();
 document.fonts.ready.then(() => { lastMarkup = ''; render(); });

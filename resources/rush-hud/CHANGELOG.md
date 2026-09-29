@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.9.0
+
+- Preserve all six player cards when JT Hud Manager remaps different players onto the same observer slot.
+- Include the original GSI player name in the death-card identity so rekeyed duplicates are still removed without collapsing distinct teammates.
+- Show each player's primary, secondary, knife, equipment and grenades inside the player-card health strip.
+- Keep health bars stable while weapon, ammo and equipment updates animate only the inventory icons.
+- Hide the observed-player ammo counter whenever the active item does not report firearm ammunition.
+
+## 1.8.1
+
+- Deduplicate transitional GSI roster entries by team and observer slot so one player cannot produce multiple dead cards.
+- Preserve the original dead-card identity when CS2 rekeys a player during the round, preventing a replacement card from entering beside it.
+
+## 1.8.0
+
+- Load current-match teams and player records from JT Hud Manager.
+- Use manager team names and logos throughout the scoreboard, announcements, timeouts and match results.
+- Use manager player names and portraits in roster cards and the observed-player panel.
+- Match real players by SteamID and assign bots deterministically by observer slot within each selected team roster.
+
 ## 1.7.6
 
 - Give CT and T round-winner cards symmetric team-color gradients and matching team-color borders on both outer edges.

@@ -10,8 +10,13 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md,knowledgebase.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-  - 'resources/default-hud/**/*'
-  - 'resources/rush-hud/**/*'
+  - '!resources/default-hud/**/*'
+  - '!resources/rush-hud/**/*'
+extraResources:
+  - from: resources/default-hud
+    to: resources/default
+  - from: resources/rush-hud
+    to: resources/rush-hud
 protocols:
   name: jtshudhmanager
   schemes:

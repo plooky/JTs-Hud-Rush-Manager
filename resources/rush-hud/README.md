@@ -44,6 +44,17 @@ The 1440p layout follows the default HUD: a top-center scoreboard and bottom-cen
 
 The manager's HUD panel provides tournament name/stage, CT and T colors, square corners, a compact live-round matchbar, model visibility, and extra advertisement spacing beneath the observed-player panel. Invalid color values fall back to the standard JT colors.
 
+## JT Hud Manager teams and players
+
+Create teams and players in JT Hud Manager, assign each player to a team, then select those teams in the manager's current match. The addon loads the manager records directly and refreshes them while the HUD is running.
+
+- Current-match team names and logos replace the GSI/default values in the scoreboard, round winner, timeout and match-result panels.
+- A player with a matching SteamID uses the manager username and avatar in the roster card and observed-player panel.
+- Bots and other players without a matching SteamID are assigned within their selected team by ascending GSI observer slot. Manager roster order supplies the corresponding player order, and coach records are excluded.
+- The current map's `reverseSide` setting swaps the manager's left/right teams between CT and T in the same way as JT's default HUD.
+- If there is no current match, SteamID-matched player names and portraits still work. Team branding and bot roster assignment require a current match with both teams selected.
+- Relative manager upload paths are resolved through the same JT Hud Manager address as the browser source, so OBS clients on another computer can load the assigned images.
+
 ## Limits and troubleshooting
 
 **Retain CS2's native RUSH objective display.** The tower changes ownership when a player interacts with it, but that interaction and ownership state were absent from the captured GSI packets. The addon does not infer tower ownership from team scores, round winners or player positions. RUSH has no bomb/defuse UI. The addon does not provide a killfeed.
@@ -70,7 +81,7 @@ For example, change `portraits.CT` to `"./assets/custom/ct.jpg"`, set `icons.sku
 Use Node.js 20 or later and PowerShell. From this folder:
 
 ```powershell
-node --test model.test.mjs motion.test.mjs radar.test.mjs theme.test.mjs
+node --test assignments.test.mjs model.test.mjs motion.test.mjs radar.test.mjs theme.test.mjs
 powershell -NoProfile -File .\Build-RushHud.ps1
 ```
 
@@ -82,7 +93,7 @@ pwsh -NoProfile -File .\Build-RushHud.ps1 -Install
 
 Append `?preview=1` to the installed HUD URL for a labeled synthetic preview, or `?preview=1&stress=1` for long names and extreme values. Remove these parameters for a live broadcast. Tests use synthetic data; local game captures are excluded from the repository and package.
 
-The HUD registers in the manager's Socket.IO `huds` room and consumes raw `update` snapshots. It activates for `map.mode === "rush"`, takes rosters from `allplayers`, and matches the observed player's `spectarget` or `steamid` against roster IDs. Radar coordinates come directly from each roster player's reported `position` and `forward`; if those fields are absent, the radar stays hidden instead of guessing an arena.
+The HUD registers in the manager's Socket.IO `huds` room and consumes raw `update` snapshots. It loads assignments from `/api/match`, `/api/teams` and `/api/players`, and refreshes them on manager match events, map changes and every five seconds. It activates for `map.mode === "rush"`, takes rosters from `allplayers`, and matches the observed player's `spectarget` or `steamid` against roster IDs. Radar coordinates come directly from each roster player's reported `position` and `forward`; if those fields are absent, the radar stays hidden instead of guessing an arena.
 
 ## Local RUSH testing
 

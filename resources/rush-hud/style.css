@@ -53,17 +53,17 @@ body { color: #fff; }
 .stat-item .hud-icon { width: 13px; height: 13px; color: var(--color-ct); }
 .T .stat-item .hud-icon { color: var(--color-t); }
 .teambox.layout-horizontal .player-horizontal-card.vertical-flow .card-info-section .money { font-size: 17px; white-space: nowrap; }
-.teambox.layout-horizontal .player-horizontal-card.vertical-flow .card-weapons-section { height: 30px; }
-.equipment-strip { width: 58%; min-width: 0; display: flex; align-items: center; gap: 3px; overflow: hidden; }
-.equipment-strip span { min-width: 0; flex: 1; display: flex; align-items: center; }
-.equipment-strip img { width: 100%; height: 21px; object-position: left; opacity: .72; transition: opacity .25s ease, filter .25s ease, transform .25s ease; }
-.equipment-strip .active img { opacity: 1; transform: translateY(-1px) scale(1.05); }
-.grenade-strip { height: 20px; }
-.grenade-strip span { width: 16px; display: flex; align-items: center; position: relative; }
-.grenade-strip img { width: 100%; height: 20px; transition: filter .25s ease, transform .25s ease; }
-.grenade-strip .active img { transform: translateY(-2px) scale(1.12); }
-.grenade-strip b { position: absolute; right: -2px; bottom: -2px; font-size: 9px; line-height: 1; text-shadow: 0 1px 2px #000; }
-.grenade-strip .active { filter: drop-shadow(0 0 3px #48ff00); }
+.teambox.layout-horizontal .player-horizontal-card.vertical-flow .card-weapons-section { position: relative; height: 30px; display: flex; align-items: center; overflow: hidden; padding: 2px 6px; }
+.card-weapons-section > .health-bar-red, .card-weapons-section > .health-bar { position: absolute; left: 0; top: 0; height: 100%; pointer-events: none; }
+.inventory-items { position: relative; z-index: 2; width: 100%; min-width: 0; height: 26px; display: flex; align-items: center; justify-content: center; gap: 4px; overflow: hidden; }
+.inventory-item { position: relative; min-width: 0; height: 24px; display: flex; align-items: center; justify-content: center; flex: .7 1 21px; opacity: .76; filter: drop-shadow(0 1px 2px #000c); }
+.inventory-item.primary { flex-grow: 1.45; }
+.inventory-item.secondary { flex-grow: 1; }
+.inventory-item.equipment { flex-grow: .58; }
+.inventory-item img { width: 100%; max-width: 46px; height: 21px; object-position: center; transition: opacity .2s ease, filter .2s ease, transform .2s ease; }
+.inventory-item.active { opacity: 1; filter: drop-shadow(0 0 3px #fff9) drop-shadow(0 1px 2px #000); }
+.inventory-item.active img { transform: translateY(-1px) scale(1.06); }
+.inventory-item b { position: absolute; right: 0; bottom: 0; font-size: 9px; line-height: 1; text-shadow: 0 1px 2px #000; }
 .weapon-fallback { display: block; max-height: 24px; font-size: 14px; line-height: 1; }
 .teambox.layout-horizontal .player-horizontal-card.vertical-flow .damage-indicator { opacity: 0; animation: none; top: -66px; left: 4px; }
 .teambox.layout-horizontal .player-horizontal-card.vertical-flow .round_kills_card { top: -44px; right: 4px; width: 22px; height: 34px; }
@@ -94,8 +94,7 @@ body { color: #fff; }
 .observed-weapon { height: 24px; margin-top: 6px; display: flex; justify-content: center; filter: drop-shadow(0 1px 3px #000); }
 .observed-weapon img { width: 90px; height: 22px; }
 .observed-inventory { height: 28px; margin-top: 6px; display: flex; justify-content: center; gap: 7px; }
-.observed-inventory span { width: 48px; height: 24px; display: flex; align-items: center; justify-content: center; opacity: .65; }
-.observed-inventory span.active { opacity: 1; filter: drop-shadow(0 0 4px #fff8); }
+.observed-inventory .inventory-item { width: 48px; flex: 0 1 48px; }
 .observed-inventory img { max-width: 48px; height: 22px; }
 .matchbar-team-panels { top: 128px; width: 1200px; }
 .matchbar-panel-spacer { width: auto; flex: 1 1 auto; }
