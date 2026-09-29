@@ -1,10 +1,10 @@
 {
-  "name": "jts-hud",
-  "version": "7.13.26",
-  "description": "A simple counter-strike hud management application built with Electron and Vite.",
+  "name": "jts-hud-rush-manager",
+  "version": "7.13.26-rush.1",
+  "description": "A RUSH-ready Counter-Strike 2 HUD manager built with Electron and Vite.",
   "main": "./out/main/index.js",
   "author": "John Timmermann",
-  "homepage": "https://github.com/JohnTimmermann/JTs-Hud",
+  "homepage": "https://github.com/plooky/JTs-Hud-Rush-Manager",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",

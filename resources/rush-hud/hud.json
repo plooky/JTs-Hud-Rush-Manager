@@ -1,0 +1,10 @@
+{
+  "name": "RUSH Live for JT Hud",
+  "version": "1.7.6",
+  "author": "plooky",
+  "legacy": false,
+  "radar": true,
+  "killfeed": false,
+  "game": "cs2",
+  "boltobserv": { "css": false, "maps": false }
+}

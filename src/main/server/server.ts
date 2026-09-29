@@ -46,8 +46,11 @@ export const io = new Server(httpServer, {
 app.use(express.json())
 // Middleware to handle signed HUD files (decode JWT before serving)
 app.use(signedHudMiddleware)
-// The default mount must come first so it takes priority over the user huds folder
+// Built-in mounts must come first so they take priority over the user HUDs folder.
+app.use('/huds/default/uploads', express.static(`${hudsPath}/default/uploads`))
+app.use('/huds/rush-hud/uploads', express.static(`${hudsPath}/rush-hud/uploads`))
 app.use('/huds/default', express.static(getBuiltinHudDir()))
+app.use('/huds/rush-hud', express.static(getBuiltinHudDir('rush-hud')))
 app.use('/huds', express.static(hudsPath))
 app.use('/api/uploads', express.static(uploadsPath))
 

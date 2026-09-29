@@ -1,11 +1,11 @@
 import { shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import net from 'net'
 import { enforceOverlayOnTop } from './overlayUtils'
 import { registerHudKeybinds, unregisterHudKeybinds } from './shortcuts'
-import { getHudsDir, getBuiltinHudDir } from './paths'
+import { getHudsDir, resolveHudDir } from './paths'
 import { setActiveHudId } from './server/server'
+import { sendCommandPipe } from './cs2CommandPipe'
 
 const GSI_CFG_CONTENT = `"JTS_HUD_MANAGER"
 {
@@ -70,7 +70,7 @@ export function registerIpcHandlers(): void {
 
     // Load hud keybinds
     if (hudId) {
-      const hudDir = hudId === 'default' ? getBuiltinHudDir() : path.join(getHudsDir(), hudId)
+      const hudDir = resolveHudDir(hudId)
       const keybindsPath = path.join(hudDir, 'keybinds.json')
       if (fs.existsSync(keybindsPath)) {
         try {
@@ -164,47 +164,7 @@ export function registerIpcHandlers(): void {
     await shell.openExternal(url)
   })
 
-  // Send one or more console commands to CS2 via telnet.
-  // Commands separated by ; are sent sequentially with a small delay between each.
-  ipcMain.handle(
-    'send-telnet',
-    (
-      _,
-      {
-        command,
-        host = '127.0.0.1',
-        port = 2020
-      }: { command: string; host?: string; port?: number }
-    ): Promise<void> => {
-      return new Promise((resolve, reject) => {
-        const socket = net.createConnection({ host, port: Number(port) })
-        const timeoutId = setTimeout(() => socket.destroy(new Error('Telnet timeout')), 4000)
-        socket.setTimeout(4000)
-
-        socket.on('connect', () => {
-          const lines = String(command)
-            .split('\n')
-            .map((l) => l.trim())
-            .filter(Boolean)
-          let i = 0
-          const writeNext = () => {
-            if (i >= lines.length) {
-              clearTimeout(timeoutId)
-              socket.end()
-              resolve()
-              return
-            }
-            socket.write(`${lines[i++]}\r\n`, () => setTimeout(writeNext, 10))
-          }
-          writeNext()
-        })
-
-        socket.on('timeout', () => socket.destroy(new Error('Telnet timeout')))
-        socket.on('error', (err) => {
-          clearTimeout(timeoutId)
-          reject(err)
-        })
-      })
-    }
-  )
+  ipcMain.handle('send-command-pipe', async (_, { command }: { command: string }) => {
+    await sendCommandPipe(command)
+  })
 }

@@ -5,6 +5,7 @@ import { registerIpcHandlers } from './ipc'
 import { registerShortcuts, unregisterShortcuts } from './shortcuts'
 import { startServers, shutdown } from './server/server'
 import { db } from './server/database/sqlite'
+import { startCommandPipes, stopCommandPipes } from './cs2CommandPipe'
 
 // Single-instance lock
 const gotLock = app.requestSingleInstanceLock()
@@ -29,6 +30,7 @@ app.whenReady().then(() => {
   })
 
   registerIpcHandlers()
+  startCommandPipes()
   registerShortcuts()
   createWindow()
 
@@ -48,8 +50,8 @@ app.whenReady().then(() => {
 async function checkForUpdate(): Promise<void> {
   try {
     const response = await net.fetch(
-      'https://api.github.com/repos/JohnTimmermann/JTs-Hud-Manager/releases/latest',
-      { headers: { 'User-Agent': 'jts-hud-manager-electron' } }
+      'https://api.github.com/repos/plooky/JTs-Hud-Rush-Manager/releases/latest',
+      { headers: { 'User-Agent': 'jts-hud-rush-manager-electron' } }
     )
     if (!response.ok) return
     const data = (await response.json()) as { tag_name: string }
@@ -81,7 +83,7 @@ app.on('before-quit', async (event) => {
     app.exit(0)
   }, 5000)
   try {
-    await shutdown()
+    await Promise.all([shutdown(), stopCommandPipes()])
     db.close((err) => {
       clearTimeout(forceExit)
       if (err) console.error('[DB] Error closing SQLite:', err.message)

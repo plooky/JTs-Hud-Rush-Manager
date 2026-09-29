@@ -1,0 +1,20 @@
+{
+  "portraits": { "CT": null, "T": null },
+  "observedPortraits": { "CT": null, "T": null },
+  "logos": { "CT": null, "T": null },
+  "radar": {
+    "room101": null, "room102": null, "room103": null, "room104": null,
+    "room201": null, "room202": null, "room203": null, "room204": null,
+    "room205": null, "room206": null, "room207": null, "room208": null,
+    "room209": null, "room210": null, "room211": null, "room212": null,
+    "room301": null, "room401": null, "roomparty": null, "convoy": null
+  },
+  "icons": {
+    "skull": { "src": "./assets/custom/Skull-4x.png", "tint": true },
+    "kills": { "src": "./assets/icons/icon_kills.svg", "tint": true },
+    "armor": { "src": "./assets/icons/icon_armor_full_default.svg", "tint": true },
+    "helmet": { "src": "./assets/icons/icon_armor_helmet_default.svg", "tint": true },
+    "bullets": { "src": "./assets/icons/icon_bullets_default.svg", "tint": true }
+  },
+  "weapons": {}
+}

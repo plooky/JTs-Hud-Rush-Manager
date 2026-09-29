@@ -4,6 +4,7 @@ import { API_URL } from '../../../index'
 export interface HudData {
   id: string
   url: string
+  lanUrl?: string
   thumb?: string
   hasPanel?: boolean
   canDelete?: boolean

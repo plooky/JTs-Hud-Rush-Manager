@@ -1,6 +1,14 @@
-# JTs Hud (Formally OpenHud)
+# JTs Hud RUSH Manager
 
-A simple open-source Counter-Strike 2 Custom Hud and Hud manager. Manage overlays, players, teams, and matches. This project is passively updated, and community PRs are much appreciated!
+A RUSH-ready fork of [JTs Hud](https://github.com/JohnTimmermann/JTs-Hud). It bundles [RUSH Live for JT Hud](https://github.com/plooky/JTs-Hud-Rush-Addon) and retains the default HUD, GSI, player, team and match management features.
+
+The bundled RUSH overlay is available immediately at:
+
+```text
+http://localhost:1349/huds/rush-hud/index.html
+```
+
+The HUD card also displays a **Copy LAN URL** action for OBS or browsers on another computer on the same network. Windows Firewall must allow the Manager on private networks.
 
 - Tech: Electron, Vue, Typescript, NodeJS/Express, Socketio, SQLite3
 
@@ -16,7 +24,9 @@ _Disclaimer: A small portion of this is ai generated, and while I don't entirely
 
 ## Features
 
-- **Built-in default HUD**
+- **Built-in default and RUSH HUDs**
+- **RUSH 3v3 rules and broadcast layout**
+- **LAN overlay URL for remote OBS computers**
 - **Bring Your Own HUD (BYOH)** - import any HUD compatible with the [cs2-react-hud](https://github.com/lexogrine/cs2-react-hud)
 - **Player & team management**
 - **Match management**
@@ -163,7 +173,7 @@ The **Live** tab shows the current CS2 game state in real time. When a match is 
 
 ## Spectator Binds Tool
 
-The **Spectator Binds** tool lets observers assign specific players to fixed observer slots (1–10) and push those binds directly to CS2 via its telnet interface.
+The **Spectator Binds** tool lets observers assign specific players to fixed observer slots (1–10). CS2 removed the old `-netconport` interface. This fork supports the replacement command pipe for local or Workshop sessions and manual console copy for secure sessions.
 
 **Why use it?**
 This tool is very useful for two cases.
@@ -186,19 +196,20 @@ This is a **VISUSAL** change, we are not actually modifying the game in anyway o
 
 ### Setup
 
-1. Launch CS2 with telnet enabled. Add the following to your CS2 launch options:
+1. Start JTs Hud RUSH Manager before CS2 so the named pipes exist.
+2. For local or Workshop sessions only, add these CS2 launch options:
    ```
-   -netconport 2020
+   -insecure -concommandpipe \\.\pipe\jts_hud_rush_cmd,\\.\pipe\jts_hud_rush_out
    ```
-2. Open **Spectator Binds** in the program and click the **Telnet** settings button.
-3. Enter the host (`127.0.0.1`) and port (`2020`) and save.
-4. Click **Test Connection** to verify.
+3. Open **Spectator Binds**, expand **Command Pipe**, and click **Test Connection**.
+
+`-concommandpipe` requires `-insecure`, which prevents Valve matchmaking. The RUSH HUD itself uses GSI and does not require the command pipe. During Valve matchmaking/GOTV, copy the generated command preview and paste it into the CS2 developer console.
 
 ### Using Spectator Binds
 
 1. Click **Fill from CS2** to populate slots from the current live game state.
 2. Drag players between slots or use **Quick Assign** to assign an entire side at once.
-3. Click **Apply Binds**: The hud manager sends the `bind` commands to CS2 via telnet automatically.
+3. Click **Apply Binds** to send the commands through an attached command pipe, or copy the preview into the CS2 console during a secure session.
 4. Use **Clear Binds** to remove all slot assignments.
 
 > The **Command Preview** panel shows exactly what commands will be sent before you apply.

@@ -34,11 +34,8 @@ export function useSpectator() {
 
   const preCommand = ref(localStorage.getItem(PRE_COMMAND_KEY) ?? '')
 
-  const telnetHost = ref('127.0.0.1')
-  const telnetPort = ref(2020)
   const settingsOpen = ref(false)
   const showInfo = ref(false)
-  const settingsSaving = ref(false)
 
   const applying = ref(false)
   const applyResult = ref<{ ok: boolean; message: string } | null>(null)
@@ -104,43 +101,14 @@ export function useSpectator() {
     return p?.side ?? null
   }
 
-  const loadSettings = async () => {
-    try {
-      const res = await fetch(`${API_URL}/settings`)
-      if (res.ok) {
-        const s = await res.json()
-        if (s.telnetHost) telnetHost.value = s.telnetHost
-        if (s.telnetPort) telnetPort.value = Number(s.telnetPort)
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-
-  const saveSettings = async () => {
-    settingsSaving.value = true
-    try {
-      await fetch(`${API_URL}/settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telnetHost: telnetHost.value, telnetPort: telnetPort.value })
-      })
-    } finally {
-      settingsSaving.value = false
-      settingsOpen.value = false
-    }
-  }
-
   const testConnection = async () => {
     testing.value = true
     testResult.value = null
     try {
-      await (window as any).electron.ipcRenderer.invoke('send-telnet', {
-        command: 'echo JtsHudManager_ping',
-        host: telnetHost.value,
-        port: telnetPort.value
+      await (window as any).electron.ipcRenderer.invoke('send-command-pipe', {
+        command: 'echo JtsHudRushManager_ping'
       })
-      testResult.value = { ok: true, message: 'Connected to CS2 telnet!' }
+      testResult.value = { ok: true, message: 'Connected to the CS2 command pipe.' }
     } catch (err: any) {
       testResult.value = { ok: false, message: err.message ?? 'Connection failed' }
     } finally {
@@ -183,16 +151,14 @@ export function useSpectator() {
     applying.value = true
     applyResult.value = null
     try {
-      await (window as any).electron.ipcRenderer.invoke('send-telnet', {
-        command,
-        host: telnetHost.value,
-        port: telnetPort.value
-      })
+      await (window as any).electron.ipcRenderer.invoke('send-command-pipe', { command })
       applyResult.value = { ok: true, message: 'Binds applied to CS2!' }
     } catch (err: any) {
       applyResult.value = {
         ok: false,
-        message: (err.message ?? 'Telnet failed') + '. Is CS2 running with -netconport 2020?'
+        message:
+          (err.message ?? 'Command pipe failed') +
+          '. For local/insecure sessions, start JT Hud RUSH Manager before CS2 and use the command-pipe launch options.'
       }
     } finally {
       applying.value = false
@@ -228,16 +194,16 @@ export function useSpectator() {
     clearing.value = true
     applyResult.value = null
     try {
-      await (window as any).electron.ipcRenderer.invoke('send-telnet', {
-        command: lines.join('\n'),
-        host: telnetHost.value,
-        port: telnetPort.value
+      await (window as any).electron.ipcRenderer.invoke('send-command-pipe', {
+        command: lines.join('\n')
       })
       applyResult.value = { ok: true, message: 'All slots cleared and binds removed from CS2.' }
     } catch (err: any) {
       applyResult.value = {
         ok: false,
-        message: (err.message ?? 'Telnet failed') + '. Is CS2 running with -netconport 2020?'
+        message:
+          (err.message ?? 'Command pipe failed') +
+          '. Copy the command preview into the CS2 console when using secure matchmaking.'
       }
     } finally {
       clearing.value = false
@@ -260,10 +226,8 @@ export function useSpectator() {
     slots.value[slot] = ''
     const key = SLOT_KEYS[slot]
     try {
-      await (window as any).electron.ipcRenderer.invoke('send-telnet', {
-        command: [`unbind ${key}`, `bind "${key}" "slot${slot}"`].join('\n'),
-        host: telnetHost.value,
-        port: telnetPort.value
+      await (window as any).electron.ipcRenderer.invoke('send-command-pipe', {
+        command: [`unbind ${key}`, `bind "${key}" "slot${slot}"`].join('\n')
       })
     } catch {
       /* ignore */
@@ -290,7 +254,6 @@ export function useSpectator() {
 
   onMounted(async () => {
     loadSlots()
-    await loadSettings()
     await pushSlots()
     socket.on('update', onUpdate)
   })
@@ -302,11 +265,8 @@ export function useSpectator() {
   return {
     gameState,
     slots,
-    telnetHost,
-    telnetPort,
     settingsOpen,
     showInfo,
-    settingsSaving,
     applying,
     applyResult,
     clearing,
@@ -320,7 +280,6 @@ export function useSpectator() {
     preCommand,
     previewCommand,
     numericNameWarnings,
-    saveSettings,
     testConnection,
     applyBinds,
     clearBinds,

@@ -17,11 +17,8 @@ import BaseInput from '@renderer/components/base/BaseInput.vue';
 const {
   gameState,
   slots,
-  telnetHost,
-  telnetPort,
   settingsOpen,
   showInfo,
-  settingsSaving,
   applying,
   applyResult,
   clearing,
@@ -35,7 +32,6 @@ const {
   preCommand,
   previewCommand,
   numericNameWarnings,
-  saveSettings,
   testConnection,
   applyBinds,
   clearBinds,
@@ -67,7 +63,7 @@ const {
           </BaseButton>
         </h1>
         <p class="text-zinc-400 text-sm mt-1">
-          Assign players to observation slots and push the binds to CS2 via telnet.
+          Assign players to observation slots and push the binds through CS2's command pipe.
         </p>
         <BaseBadge variant="blue">
           You will need to change every players slots if you want to use the binds.
@@ -75,12 +71,12 @@ const {
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
-        <!-- CS2 telnet settings toggle -->
+        <!-- CS2 command pipe help toggle -->
         <BaseButton
           @click="settingsOpen = !settingsOpen"
         >
           <SettingsIcon/>
-          Telnet
+          Command Pipe
         </BaseButton>
 
         <!-- Clear binds button -->
@@ -105,16 +101,12 @@ const {
       </div>
     </div>
 
-    <!-- Telnet settings panel -->
+    <!-- Command pipe panel -->
     <SpectatorTelnetSettings
       v-if="settingsOpen"
-      v-model:host="telnetHost"
-      v-model:port="telnetPort"
       :testing="testing"
       :test-result="testResult"
-      :saving="settingsSaving"
       @test="testConnection"
-      @save="saveSettings"
     />
 
     <!-- Apply result toast -->

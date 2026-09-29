@@ -147,6 +147,15 @@ const nonMainVariants = props.hud.config.variants?.filter(v => v.toLowerCase() !
               </svg>
               {{ copiedUrl === hud.url ? 'Copied!' : 'Copy URL' }}
             </BaseButton>
+            <BaseButton
+              v-if="hud.lanUrl"
+              @click="copyUrl(hud.lanUrl)"
+              variant="ghost"
+              size="sm"
+              title="Copy a URL for OBS or a browser on this network"
+            >
+              {{ copiedUrl === hud.lanUrl ? 'Copied!' : 'Copy LAN URL' }}
+            </BaseButton>
           </div>
         </div>
       </div>

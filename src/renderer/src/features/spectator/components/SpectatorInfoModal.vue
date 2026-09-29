@@ -50,13 +50,13 @@ defineEmits<{
           </section>
 
           <section>
-            <h3 class="text-text-main font-semibold mb-1">Applying binds via Telnet</h3>
-            <p>Once you launch CS2 with <code class="bg-zinc-800 px-1 rounded font-mono">-netconport 2020</code> in your launch options, clicking <span class="text-zinc-200 font-medium">Apply Binds</span> connects to that port and sends each bind command</p>
+            <h3 class="text-text-main font-semibold mb-1">Applying binds through the command pipe</h3>
+            <p>Start JT Hud RUSH Manager before CS2. For local or Workshop sessions, launch CS2 with the command-pipe options shown below. Apply Binds then writes each command to CS2's pipe.</p>
           </section>
 
           <section>
             <h3 class="text-text-main font-semibold mb-1">Applying binds manually</h3>
-            <p>If telnet isn't available, use the <span class="text-zinc-200 font-medium">Copy</span> button in the Command Preview section and paste the single-line command directly into the CS2 console (<code class="bg-zinc-800 px-1 rounded">~</code>).</p>
+            <p>For Valve matchmaking or GOTV, use the <span class="text-zinc-200 font-medium">Copy</span> button in the Command Preview section and paste the single-line command directly into the CS2 console (<code class="bg-zinc-800 px-1 rounded">~</code>).</p>
           </section>
 
           <section>
@@ -67,8 +67,8 @@ defineEmits<{
           <section>
             <h3 class="text-text-main font-semibold mb-1">CS2 launch option</h3>
             <p>Add the following to your CS2 launch options in Steam:</p>
-            <pre class="bg-zinc-950 border border-border rounded-lg px-3 py-2 font-mono text-xs text-zinc-400 mt-1">-netconport 2020</pre>
-            <p class="text-zinc-500 text-xs mt-1">The port can be changed in the Telnet settings panel on this page.</p>
+            <pre class="bg-zinc-950 border border-border rounded-lg px-3 py-2 font-mono text-xs text-zinc-400 mt-1 whitespace-pre-wrap break-all">-insecure -concommandpipe \\.\pipe\jts_hud_rush_cmd,\\.\pipe\jts_hud_rush_out</pre>
+            <p class="text-amber-400 text-xs mt-1">The command pipe requires <code>-insecure</code>, which prevents Valve matchmaking. RUSH HUD data itself uses GSI and does not require these launch options.</p>
           </section>
         </div>
       </div>

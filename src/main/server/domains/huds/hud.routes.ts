@@ -4,11 +4,12 @@ import path from 'path'
 import { Server } from 'socket.io'
 import multer from 'multer'
 import AdmZip from 'adm-zip'
+import os from 'os'
 import { dbRun, dbGet } from '../../database/sqlite'
 import { PlayerRepository } from '../players/player.repository'
 import { TeamRepository } from '../teams/team.repository'
 import { MatchRepository } from '../matches/match.repository'
-import { getHudsDir, getBuiltinHudDir } from '../../../paths'
+import { getHudsDir, getBuiltinHudDir, isBuiltinHud, resolveHudDir } from '../../../paths'
 import { SignatureVerifier } from './signature.verifier'
 
 // --- Lots of AI generated functions in here, be careful ---
@@ -40,7 +41,7 @@ const enrichHudConfig = async (
   hudId: string,
   rawConfig: Record<string, any>
 ): Promise<Record<string, any>> => {
-  const hudDir = hudId === 'default' ? getBuiltinHudDir() : path.join(getHudsDir(), hudId)
+  const hudDir = resolveHudDir(hudId)
   const panelPath = path.join(hudDir, 'panel.json')
   if (!fs.existsSync(panelPath)) return rawConfig
 
@@ -101,6 +102,24 @@ const findThumbFile = (hudDir: string): string | null => {
   if (fs.existsSync(thumbPng)) return 'thumb.png'
   if (fs.existsSync(thumbJpg)) return 'thumb.jpg'
   return null
+}
+
+const getLanHost = (): string | null => {
+  const addresses = Object.values(os.networkInterfaces())
+    .flatMap((entries) => entries ?? [])
+    .filter(
+      (entry) =>
+        entry.family === 'IPv4' && !entry.internal && !entry.address.startsWith('169.254.')
+    )
+    .map((entry) => entry.address)
+
+  return (
+    addresses.find((address) => address.startsWith('192.168.')) ??
+    addresses.find((address) => address.startsWith('10.')) ??
+    addresses.find((address) => /^172\.(1[6-9]|2\d|3[01])\./.test(address)) ??
+    addresses[0] ??
+    null
+  )
 }
 
 const createHudRouter = (io: Server) => {
@@ -201,37 +220,45 @@ const createHudRouter = (io: Server) => {
         id: string
         config: any
         url: string
+        lanUrl?: string
         thumb?: string
         hasPanel: boolean
         canDelete: boolean
         isSigned?: boolean
         signatureVerified?: boolean
       }[] = []
+      const port = process.env.HUD_PORT || 1349
+      const lanHost = getLanHost()
 
-      // Prepend default hud which cannot be deleted
-      const builtinDir = getBuiltinHudDir()
-      const builtinHudJson = path.join(builtinDir, 'hud.json')
-      if (fs.existsSync(builtinHudJson)) {
-        try {
-          const result = SignatureVerifier.verifyAndParseHudJson(builtinHudJson)
-          const config = result.data
-          const thumbFilename = findThumbFile(builtinDir)
-          const panelPath = path.join(builtinDir, 'panel.json')
-          const signatureStatus = SignatureVerifier.getHudSignatureStatus(builtinDir)
-          availableHuds.push({
-            id: 'default',
-            config,
-            url: `http://localhost:${process.env.HUD_PORT || 1349}/huds/default/index.html`,
-            thumb: thumbFilename
-              ? `http://localhost:${process.env.HUD_PORT || 1349}/huds/default/${thumbFilename}`
-              : undefined,
-            hasPanel: fs.existsSync(panelPath),
-            canDelete: false,
-            isSigned: signatureStatus.isSigned,
-            signatureVerified: signatureStatus.isSigned && !result.error
-          })
-        } catch {
-          // Skip if hud.json is invalid
+      // Prepend built-in HUDs, which are packaged with the manager and cannot be deleted.
+      for (const builtinId of ['default', 'rush-hud'] as const) {
+        const builtinDir = getBuiltinHudDir(builtinId)
+        const builtinHudJson = path.join(builtinDir, 'hud.json')
+        if (fs.existsSync(builtinHudJson)) {
+          try {
+            const result = SignatureVerifier.verifyAndParseHudJson(builtinHudJson)
+            const config = result.data
+            const thumbFilename = findThumbFile(builtinDir)
+            const panelPath = path.join(builtinDir, 'panel.json')
+            const signatureStatus = SignatureVerifier.getHudSignatureStatus(builtinDir)
+            availableHuds.push({
+              id: builtinId,
+              config,
+              url: `http://localhost:${port}/huds/${builtinId}/index.html`,
+              lanUrl: lanHost
+                ? `http://${lanHost}:${port}/huds/${builtinId}/index.html`
+                : undefined,
+              thumb: thumbFilename
+                ? `http://localhost:${port}/huds/${builtinId}/${thumbFilename}`
+                : undefined,
+              hasPanel: fs.existsSync(panelPath),
+              canDelete: false,
+              isSigned: signatureStatus.isSigned,
+              signatureVerified: signatureStatus.isSigned && !result.error
+            })
+          } catch {
+            // Skip a built-in HUD if its manifest is invalid.
+          }
         }
       }
 
@@ -248,9 +275,12 @@ const createHudRouter = (io: Server) => {
           availableHuds.push({
             id: dirName,
             config: hudData,
-            url: `http://localhost:${process.env.HUD_PORT || 1349}/huds/${dirName}/index.html`,
+            url: `http://localhost:${port}/huds/${dirName}/index.html`,
+            lanUrl: lanHost
+              ? `http://${lanHost}:${port}/huds/${dirName}/index.html`
+              : undefined,
             thumb: thumbFilename
-              ? `http://localhost:${process.env.HUD_PORT || 1349}/huds/${dirName}/${thumbFilename}`
+              ? `http://localhost:${port}/huds/${dirName}/${thumbFilename}`
               : undefined,
             hasPanel: fs.existsSync(panelPath),
             canDelete: true,
@@ -268,7 +298,7 @@ const createHudRouter = (io: Server) => {
   // GET /api/huds/:hudId/panel — return panel.json (handle both signed and unsigned)
   router.get('/:hudId/panel', (req: Request, res: Response) => {
     const hudId = req.params.hudId as string
-    const hudDir = hudId === 'default' ? getBuiltinHudDir() : path.join(getHudsDir(), hudId)
+    const hudDir = resolveHudDir(hudId)
     const panelPath = path.join(hudDir, 'panel.json')
     if (!fs.existsSync(panelPath))
       return res.status(404).json({ error: 'No panel.json found for this HUD.' })
@@ -339,7 +369,7 @@ const createHudRouter = (io: Server) => {
   // DELETE /api/huds/:hudId — remove the HUD directory and its DB config
   router.delete('/:hudId', async (req: Request, res: Response) => {
     const hudId = path.basename(req.params.hudId as string) // prevent traversal
-    if (hudId === 'default')
+    if (isBuiltinHud(hudId))
       return res.status(403).json({ error: 'The built-in HUD cannot be deleted.' })
     const hudDir = path.join(getHudsDir(), hudId)
     try {
@@ -393,7 +423,7 @@ const createHudRouter = (io: Server) => {
     try {
       const hudId = req.params.hudId as string
       const filename = path.basename(req.params.filename as string)
-      const hudDir = hudId === 'default' ? getBuiltinHudDir() : path.join(getHudsDir(), hudId)
+      const hudDir = resolveHudDir(hudId)
       const filePath = path.join(hudDir, filename)
 
       if (!fs.existsSync(filePath)) {
@@ -426,7 +456,7 @@ const createHudRouter = (io: Server) => {
   router.get('/:hudId/signature-status', (req: Request, res: Response) => {
     try {
       const hudId = req.params.hudId as string
-      const hudDir = hudId === 'default' ? getBuiltinHudDir() : path.join(getHudsDir(), hudId)
+      const hudDir = resolveHudDir(hudId)
 
       if (!fs.existsSync(hudDir)) {
         return res.status(404).json({ error: 'HUD not found' })

@@ -1,0 +1,16 @@
+[
+  {
+    "label": "Display settings",
+    "name": "display_settings",
+    "inputs": [
+      { "type": "text", "name": "tournament_name", "label": "Tournament name" },
+      { "type": "text", "name": "tournament_stage", "label": "Tournament stage" },
+      { "type": "text", "name": "ct_color", "label": "CT color (#RRGGBB)" },
+      { "type": "text", "name": "t_color", "label": "T color (#RRGGBB)" },
+      { "type": "checkbox", "name": "use_advertisement", "label": "Advertisement gap below observed player" },
+      { "type": "checkbox", "name": "sharp_corners", "label": "Sharp corners" },
+      { "type": "checkbox", "name": "compact_matchbar", "label": "Compact matchbar during live rounds" },
+      { "type": "checkbox", "name": "disable_team_models", "label": "Hide team models" }
+    ]
+  }
+]

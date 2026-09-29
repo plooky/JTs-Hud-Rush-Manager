@@ -16,14 +16,19 @@ export const getHudsDir = (): string => {
  * Returns the path to the bundled default HUD inside the app package.
  * Tries multiple locations to support dev, packed, and unpacked scenarios.
  */
-export const getBuiltinHudDir = (): string => {
+export type BuiltinHudId = 'default' | 'rush-hud'
+
+export const isBuiltinHud = (hudId: string): hudId is BuiltinHudId =>
+  hudId === 'default' || hudId === 'rush-hud'
+
+export const getBuiltinHudDir = (hudId: BuiltinHudId = 'default'): string => {
   const candidates = [
     // Production packed build
-    path.join(app.getAppPath(), 'resources/default-hud'),
+    path.join(app.getAppPath(), `resources/${hudId}`),
     // Unpacked build
-    path.join(process.execPath, '../resources/default-hud'),
+    path.join(process.execPath, `../resources/${hudId}`),
     // Development
-    path.join(__dirname, '../../resources/default-hud')
+    path.join(__dirname, `../../resources/${hudId}`)
   ]
 
   for (const candidate of candidates) {
@@ -33,5 +38,8 @@ export const getBuiltinHudDir = (): string => {
   }
 
   // Fallback to development path if none exist (will error at runtime if actually needed)
-  return path.join(__dirname, '../../resources/default-hud')
+  return path.join(__dirname, `../../resources/${hudId}`)
 }
+
+export const resolveHudDir = (hudId: string): string =>
+  isBuiltinHud(hudId) ? getBuiltinHudDir(hudId) : path.join(getHudsDir(), hudId)

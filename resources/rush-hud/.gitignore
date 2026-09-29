@@ -1,0 +1,8 @@
+# Build artifacts and local game captures are not source files.
+dist/
+fixtures/
+*.log
+.env
+.env.*
+.DS_Store
+Thumbs.db
