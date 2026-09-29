@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.1
+
+- Keep weapon, knife, equipment and health-bar elements fixed when players shoot or perform other actions.
+- Replace action-specific icon, stat and round-kill movement with a short light glow around the acting player's card.
+
 ## 1.9.0
 
 - Preserve all six player cards when JT Hud Manager remaps different players onto the same observer slot.

@@ -54,3 +54,16 @@ test('presentation changes identify UI events without treating countdown ticks a
   assert.equal(events.players.find(player => player.id === 'ct2').stats, true);
   assert.equal(events.players.find(player => player.id === 'ct1').equipment, true);
 });
+
+test('player actions request a card glow without moving inventory or health elements', () => {
+  const before = normalize(fixture);
+  const shot = structuredClone(fixture);
+  shot.allplayers.ct2.weapons.weapon_0.ammo_clip -= 1;
+  const event = presentationChanges(before, normalize(shot)).players.find(player => player.id === 'ct2');
+  assert.equal(event.equipment, true);
+  assert.equal(event.activity, true);
+  const dead = structuredClone(shot);
+  dead.allplayers.ct2.state.health = 0;
+  const deadEvent = presentationChanges(normalize(shot), normalize(dead)).players.find(player => player.id === 'ct2');
+  assert.equal(deadEvent.activity, false);
+});

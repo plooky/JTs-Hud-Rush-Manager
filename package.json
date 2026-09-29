@@ -1,6 +1,6 @@
 {
   "name": "jts-hud-rush-manager",
-  "version": "7.13.26-rush.2",
+  "version": "7.13.26-rush.3",
   "description": "A RUSH-ready Counter-Strike 2 HUD manager built with Electron and Vite.",
   "main": "./out/main/index.js",
   "author": "John Timmermann",

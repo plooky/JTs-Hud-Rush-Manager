@@ -54,15 +54,17 @@ export function presentationChanges(previous, current) {
   const oldPlayers = new Map(previous?.isRush ? [...previous.ct.players, ...previous.t.players].map(p => [p.id, p]) : []);
   const players = [...current.ct.players, ...current.t.players].map(player => {
     const before = oldPlayers.get(player.id);
+    const stats = !!before && ['kills', 'deaths', 'money'].some(key => before[key] !== player[key]);
+    const equipment = !!before && (before.weaponId !== player.weaponId || before.ammo !== player.ammo || before.reserve !== player.reserve || before.inventory.join('|') !== player.inventory.join('|'));
+    const roundKills = !!before && before.roundKills !== player.roundKills;
     return {
       id: player.id,
       dead: player.health === 0,
       entered: !before,
       died: !!before && before.health !== 0 && player.health === 0,
       revived: !!before && before.health === 0 && (player.health ?? 0) > 0,
-      stats: !!before && ['kills', 'deaths', 'money'].some(key => before[key] !== player[key]),
-      equipment: !!before && (before.weaponId !== player.weaponId || before.ammo !== player.ammo || before.reserve !== player.reserve || before.inventory.join('|') !== player.inventory.join('|')),
-      roundKills: !!before && before.roundKills !== player.roundKills
+      stats, equipment, roundKills,
+      activity: !!before && player.health !== 0 && (stats || equipment || roundKills)
     };
   });
   const comparable = previous?.isRush && previous.map === current.map;

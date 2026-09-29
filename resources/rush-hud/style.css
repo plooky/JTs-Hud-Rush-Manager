@@ -60,9 +60,8 @@ body { color: #fff; }
 .inventory-item.primary { flex-grow: 1.45; }
 .inventory-item.secondary { flex-grow: 1; }
 .inventory-item.equipment { flex-grow: .58; }
-.inventory-item img { width: 100%; max-width: 46px; height: 21px; object-position: center; transition: opacity .2s ease, filter .2s ease, transform .2s ease; }
+.inventory-item img { width: 100%; max-width: 46px; height: 21px; object-position: center; transition: opacity .2s ease, filter .2s ease; }
 .inventory-item.active { opacity: 1; filter: drop-shadow(0 0 3px #fff9) drop-shadow(0 1px 2px #000); }
-.inventory-item.active img { transform: translateY(-1px) scale(1.06); }
 .inventory-item b { position: absolute; right: 0; bottom: 0; font-size: 9px; line-height: 1; text-shadow: 0 1px 2px #000; }
 .weapon-fallback { display: block; max-height: 24px; font-size: 14px; line-height: 1; }
 .teambox.layout-horizontal .player-horizontal-card.vertical-flow .damage-indicator { opacity: 0; animation: none; top: -66px; left: 4px; }

@@ -61,9 +61,11 @@ function playPresentationMotion(before, game) {
     const card = [...root.querySelectorAll('.player-horizontal-container')].find(node => node.dataset.key === `player-${event.id}`);
     if (event.entered && !motion.initial) animate(card, [{ opacity: 0, transform: 'translateY(55px) scale(.9)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], { duration: 520, easing: ease });
     if (event.revived) animate(card, [{ opacity: .35, filter: 'grayscale(1) brightness(2)' }, { opacity: 1, filter: 'grayscale(0) brightness(1)' }], { duration: 600, easing: ease });
-    if (event.stats && !event.dead) animate(card?.querySelector('.card-info-section'), [{ filter: 'brightness(1)' }, { filter: 'brightness(1.8)', offset: .4 }, { filter: 'brightness(1)' }], { duration: 420, easing: 'ease-out' });
-    if (event.equipment && !event.dead) animate(card?.querySelector('.inventory-items'), [{ transform: 'translateY(3px)', opacity: .55 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 260, easing: ease });
-    if (event.roundKills && !event.dead) animate(card?.querySelector('.round_kills_card'), [{ opacity: 0, transform: 'rotate(8deg) scale(.4)' }, { opacity: 1, transform: 'rotate(8deg) scale(1.18)', offset: .7 }, { opacity: 1, transform: 'rotate(8deg) scale(1)' }], { duration: 420, easing: ease });
+    if (event.activity) animate(card?.querySelector('.player-horizontal-card'), [
+      { boxShadow: '0 0 0 0 rgba(255,255,255,0)' },
+      { boxShadow: '0 0 0 2px rgba(255,255,255,.5), 0 0 16px rgba(255,255,255,.22)', offset: .24 },
+      { boxShadow: '0 0 0 0 rgba(255,255,255,0)' }
+    ], { duration: 520, easing: 'ease-out' });
   }
   if (motion.observed) animate(root.querySelector('.observed'), [{ opacity: .2, transform: 'translate(-50%, 28px) scale(.96)' }, { opacity: 1, transform: 'translate(-50%, 0) scale(1)' }], { duration: 420, easing: ease });
   if (motion.observedVitals) animate(root.querySelector('.observed .main_container'), [{ filter: 'brightness(1.7)' }, { filter: 'brightness(1)' }], { duration: 360, easing: 'ease-out' });
