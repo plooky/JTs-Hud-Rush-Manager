@@ -63,6 +63,43 @@ test('confirmed deaths stay latched through stale same-round GSI updates', () =>
   staleHealth.map.round += 1;
   assert.equal(normalize(staleHealth, dead).ct.players.find(player => player.id === 'ct2').health, 64);
 });
+test('rekeyed and overlapping GSI entries cannot duplicate a dead roster slot', () => {
+  const deadRaw = structuredClone(fixture);
+  deadRaw.allplayers.ct2.state.health = 0;
+  const dead = normalize(deadRaw);
+
+  const rekeyed = structuredClone(deadRaw);
+  rekeyed.allplayers['ct2-rekeyed'] = structuredClone(rekeyed.allplayers.ct2);
+  rekeyed.allplayers['ct2-rekeyed'].state.health = 100;
+  delete rekeyed.allplayers.ct2;
+  rekeyed.player.spectarget = 'ct2-rekeyed';
+  const retained = normalize(rekeyed, dead);
+  const slotTwo = retained.ct.players.filter(player => player.slot === 2);
+  assert.equal(retained.count, 6);
+  assert.equal(slotTwo.length, 1);
+  assert.equal(slotTwo[0].id, 'ct2');
+  assert.equal(slotTwo[0].health, 0);
+  assert.equal(slotTwo[0].observed, true);
+
+  const overlapping = structuredClone(deadRaw);
+  overlapping.allplayers['ct2-rekeyed'] = structuredClone(overlapping.allplayers.ct2);
+  overlapping.allplayers['ct2-rekeyed'].state.health = 100;
+  const deduped = normalize(overlapping, dead);
+  assert.equal(deduped.count, 6);
+  assert.equal(deduped.ct.players.filter(player => player.slot === 2).length, 1);
+  assert.equal(deduped.ct.players.find(player => player.slot === 2).health, 0);
+});
+test('different players sharing remapped observer slots remain in the roster', () => {
+  const collided = structuredClone(fixture);
+  collided.allplayers.ct3.observer_slot = collided.allplayers.ct2.observer_slot;
+  collided.allplayers.t3.observer_slot = collided.allplayers.t1.observer_slot;
+  const game = normalize(collided);
+  assert.equal(game.count, 6);
+  assert.equal(game.ct.players.length, 3);
+  assert.equal(game.t.players.length, 3);
+  assert.deepEqual(game.ct.players.map(player => player.name).sort(), ['Player One', 'Player Three', 'Player Two']);
+  assert.deepEqual(game.t.players.map(player => player.name).sort(), ['Player Five', 'Player Four', 'Player Six']);
+});
 test('mode detection does not mistake another 3v3 match for RUSH', () => {
   assert.equal(normalize({ ...fixture, map: { mode: 'competitive', name: 'rush_001' } }).isRush, false);
 });
@@ -122,6 +159,26 @@ test('round winner, timeouts, equipment and utility use only reported fields', (
   assert.equal(missing.roundWinner, null);
   assert.equal(missing.ct.timeoutsRemaining, null);
   assert.equal(missing.ct.utility, null);
+});
+
+test('inventory is ordered primary, secondary, then equipment and knife suppresses ammo', () => {
+  const raw = structuredClone(fixture);
+  raw.allplayers.ct2.weapons = {
+    knife: { name: 'weapon_knife', type: 'Knife', state: 'active' },
+    grenade: { name: 'weapon_flashbang', type: 'Grenade', state: 'holstered', ammo_reserve: 2 },
+    pistol: { name: 'weapon_usp_silencer', type: 'Pistol', state: 'holstered', ammo_clip: 12, ammo_reserve: 24 },
+    primary: { name: 'weapon_awp', type: 'SniperRifle', state: 'holstered', ammo_clip: 5, ammo_reserve: 20 }
+  };
+  let game = normalize(raw);
+  assert.deepEqual(game.observed.inventoryItems.map(item => item.category), ['primary', 'secondary', 'equipment', 'equipment']);
+  assert.deepEqual(game.observed.inventoryItems.map(item => item.id), ['awp', 'usp_silencer', 'knife', 'flashbang']);
+  assert.equal(game.observed.showsAmmo, false);
+  raw.allplayers.ct2.weapons.knife.state = 'holstered';
+  raw.allplayers.ct2.weapons.primary.state = 'active';
+  game = normalize(raw);
+  assert.equal(game.observed.showsAmmo, true);
+  assert.equal(game.observed.ammo, 5);
+  assert.equal(game.observed.reserve, 20);
 });
 
 test('winner requires gameover and a conclusive result, including the RUSH tiebreak', () => {

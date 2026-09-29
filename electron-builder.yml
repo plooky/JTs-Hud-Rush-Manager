@@ -14,9 +14,9 @@ files:
   - '!resources/rush-hud/**/*'
 extraResources:
   - from: resources/default-hud
-    to: resources/default
+    to: default
   - from: resources/rush-hud
-    to: resources/rush-hud
+    to: rush-hud
 protocols:
   name: jtshudhmanager
   schemes:

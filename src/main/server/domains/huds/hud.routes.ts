@@ -263,6 +263,7 @@ const createHudRouter = (io: Server) => {
       }
 
       for (const dirName of directories) {
+        if (isBuiltinHud(dirName)) continue
         const hudJsonPath = path.join(hudsDir, dirName, 'hud.json')
         if (fs.existsSync(hudJsonPath)) {
           const result = SignatureVerifier.verifyAndParseHudJson(hudJsonPath)
